@@ -1,1 +1,1 @@
-from .augmentations import AffineMRIAugmenter, MRIAugmenter
+from .augmentations import AffineMRIAugmenter, MRIAugmenter, Flip

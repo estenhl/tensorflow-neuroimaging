@@ -5,7 +5,6 @@ from tensorflow_neuroimaging.augmentations import MRIAugmenter
 
 def test_mri_augmenter_assert_shape():
     """Test that the MRI augmenter validates the image shape."""
-
     image = tf.random.uniform((3, 3), dtype=tf.float32)
 
     try:
@@ -17,7 +16,6 @@ def test_mri_augmenter_assert_shape():
 
 def test_mri_augmenter_assert_dtype():
     """Test that the MRI augmenter validates the image dtype."""
-
     image = tf.random.uniform((3, 3, 3), maxval=1, dtype=tf.int32)
 
     try:

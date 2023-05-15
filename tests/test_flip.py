@@ -4,13 +4,16 @@ import tensorflow as tf
 
 from tensorflow.python.framework.errors_impl import InvalidArgumentError
 
-from tensorflow_neuroimaging.augmentation import MRIAugmenter
+from tensorflow_neuroimaging.augmentations import Flip
 
 
 def test_mri_augmenter_flip_none():
+    """Tests that the MRIAugmenter.flip method does not flip the image
+    when no axes to flip are given.
+    """
     image = tf.random.uniform((10, 10, 10))
     flips = tf.repeat(False, 3)
-    matrix, offset = MRIAugmenter.flip(image, flips=flips)
+    matrix, offset = Flip.compute_transform(image, flips=flips)
 
     assert np.array_equal(matrix, np.eye(3)), \
            ('MRIAugmenter.flip should not flip the image when no axes to flip '
@@ -20,11 +23,14 @@ def test_mri_augmenter_flip_none():
             'given')
 
 def test_mri_augmenter_flip_2d():
-    image = tf.random.uniform((10, 10))
+    """Tests that the MRIAugmenter.flip method raises an error if the
+    image is not 3-dimensional.
+    """
+    image = tf.random.uniform((10, 10), dtype=tf.float32)
     flips = tf.repeat(False, 3)
 
     try:
-        MRIAugmenter.flip(image, flips=flips)
+        Flip.compute_transform(image, flips=flips)
 
         assert False, \
                ('MRIAugmenter.flip should raise an error when the image is '
@@ -33,22 +39,28 @@ def test_mri_augmenter_flip_2d():
         pass
 
 def test_mri_augmenter_flip_2d_vector():
-    image = tf.random.uniform((10, 10, 10))
+    """Tests that the MRIAugmenter.flip method raises an error if the
+    flips argument is not 3-dimensional.
+    """
+    image = tf.random.uniform((10, 10, 10), dtype=tf.float32)
     flips = tf.repeat(False, 2)
     try:
-        MRIAugmenter.flip(image, flips=flips)
+        Flip.compute_transform(image, flips=flips)
 
         assert False, \
                ('MRIAugmenter.flip should raise an error when the flips '
                 'argument is not 3-dimensional')
-    except InvalidArgumentError:
+    except ValueError:
         pass
 
 def test_mri_augmenter_flip_integer_flips():
-    image = tf.random.uniform((10, 10, 10))
+    """Tests that the MRIAugmenter.flip method raises an error if the
+    flips argument is not boolean.
+    """
+    image = tf.random.uniform((10, 10, 10), dtype=tf.float32)
     flips = tf.constant([0, 0, 0])
     try:
-        MRIAugmenter.flip(image, flips=flips)
+        Flip.compute_transform(image, flips=flips)
 
         assert False, \
                 ('MRIAugmenter.flip should raise an error when the flips '
@@ -57,9 +69,12 @@ def test_mri_augmenter_flip_integer_flips():
         pass
 
 def test_mri_augmenter_flip_y():
+    """Tests that the MRIAugmenter.flip method flips the image across
+    the y-axis when given the vector [True, False, False].
+    """
     image = tf.random.uniform((10, 11, 12), dtype=tf.float32)
     flips = tf.constant([True, False, False])
-    matrix, offset = MRIAugmenter.flip(image, flips=flips)
+    matrix, offset = Flip.compute_transform(image, flips=flips)
 
     assert np.array_equal(matrix, np.diag([-1, 1, 1])), \
            ('MRIAugmenter.flip should flip the image across the y-axis when '
@@ -69,9 +84,12 @@ def test_mri_augmenter_flip_y():
             'when flipping across the y-axis')
 
 def test_mri_augmenter_flip_x():
+    """Tests that the MRIAugmenter.flip method flips the image across
+    the x-axis when given the vector [False, True, False].
+    """
     image = tf.random.uniform((10, 11, 12), dtype=tf.float32)
     flips = tf.constant([False, True, False])
-    matrix, offset = MRIAugmenter.flip(image, flips=flips)
+    matrix, offset = Flip.compute_transform(image, flips=flips)
 
     assert np.array_equal(matrix, np.diag([1, -1, 1])), \
            ('MRIAugmenter.flip should flip the image across the x-axis when '
@@ -81,9 +99,12 @@ def test_mri_augmenter_flip_x():
             'when flipping across the x-axis')
 
 def test_mri_augmenter_flip_z():
+    """Tests that the MRIAugmenter.flip method flips the image across
+    the z-axis when given the vector [False, False, True].
+    """
     image = tf.random.uniform((10, 11, 12), dtype=tf.float32)
     flips = tf.constant([False, False, True])
-    matrix, offset = MRIAugmenter.flip(image, flips=flips)
+    matrix, offset = Flip.compute_transform(image, flips=flips)
 
     assert np.array_equal(matrix, np.diag([1, 1, -1])), \
            ('MRIAugmenter.flip should flip the image across the z-axis when '
@@ -91,4 +112,3 @@ def test_mri_augmenter_flip_z():
     assert np.array_equal(offset, np.array([0, 0, 12])), \
            ('MRIAugmenter.flip should add an offset equal to the image depth '
             'when flipping across the z-axis')
-

@@ -6,6 +6,8 @@ from tensorflow_neuroimaging.augmentations import AffineMRIAugmenter
 
 
 class TestMRIAugmenter(AffineMRIAugmenter):
+    __test__ = False
+
     def compute_transform(self, *args, **kwargs) -> Tuple:
         raise NotImplementedError()
 
@@ -13,7 +15,6 @@ def test_affine_mri_augmenter_invalid_interpolation():
     """Test that the affine MRI augmenter raises an error if an
     invalid interpolation method is given.
     """
-
     try:
         TestMRIAugmenter(interpolation='INVALID')
         assert False, ('AffineMRIAugmenter should raise an error if an '
@@ -25,11 +26,6 @@ def test_affine_mri_augmenter_applies_transformation():
     """Test that the affine MRI augmenter applies the given
     transformation.
     """
-
-    # Due to randomness in which dimensions are augmented, seed must be
-    # set to ensure the test runs deterministically.
-    tf.random.get_global_generator().reset_from_seed(42)
-
     image = tf.random.uniform((3, 3, 3))
     augmenter = TestMRIAugmenter()
 
@@ -39,7 +35,9 @@ def test_affine_mri_augmenter_applies_transformation():
         [0, 1, 0]
     ], dtype=tf.float32)
     offset = tf.constant([0.0, 0.0, 0.0])
-    augmented = augmenter.apply_transformation(image, matrix, offset)
+    augmented = augmenter.apply_transformation(image, matrix, offset,
+                                               dims=tf.constant([1, 2, 0]))
+
 
     image = image.numpy()
     augmented = augmented.numpy()
@@ -50,18 +48,14 @@ def test_affine_mri_augmenter_applies_transformation():
 
 def test_affine_mri_augmenter_applies_offset():
     """Test that the affine MRI augmenter applies the given offset."""
-
-    # Due to randomness in which dimensions are augmented, seed must be
-    # set to ensure the test runs deterministically.
-    tf.random.get_global_generator().reset_from_seed(42)
-
     image = tf.random.uniform((3, 3, 3))
     augmenter = TestMRIAugmenter()
 
     matrix = tf.eye(3, dtype=tf.float32)
     offset = tf.constant([0.0, 1.0, 1.0])
 
-    augmented = augmenter.apply_transformation(image, matrix, offset)
+    augmented = augmenter.apply_transformation(image, matrix, offset,
+                                               dims=tf.constant([1, 2, 0]))
 
     image = image.numpy()
     augmented = augmented.numpy()
@@ -72,7 +66,6 @@ def test_affine_mri_augmenter_applies_offset():
 
 def test_affine_mri_augmenter_validates_matrix_shape():
     """Test that the affine MRI augmenter validates the matrix shape."""
-
     matrix = tf.random.uniform((2, 3), dtype=tf.float32)
     augmenter = TestMRIAugmenter()
 
@@ -87,7 +80,6 @@ def test_affine_mri_augmenter_validates_matrix_shape():
 
 def test_affine_mri_augmenter_validates_matrix_dtype():
     """Test that the affine MRI augmenter validates the matrix dtype."""
-
     matrix = tf.eye(3, dtype=tf.int32)
     augmenter = TestMRIAugmenter()
 
@@ -102,7 +94,6 @@ def test_affine_mri_augmenter_validates_matrix_dtype():
 
 def test_affine_mri_augmenter_validates_offset_shape():
     """Test that the affine MRI augmenter validates the offset shape."""
-
     offset = tf.random.uniform((2,), dtype=tf.float32)
     augmenter = TestMRIAugmenter()
 
@@ -116,7 +107,6 @@ def test_affine_mri_augmenter_validates_offset_shape():
 
 def test_affine_mri_augmenter_validates_offset_dtype():
     """Test that the affine MRI augmenter validates the offset dtype."""
-
     offset = tf.zeros((3,), dtype=tf.int32)
     augmenter = TestMRIAugmenter()
 
