@@ -2,7 +2,7 @@
 import numpy as np
 import tensorflow as tf
 
-from typing import Tuple
+from typing import Any, Dict, Tuple
 
 from tensorflow_neuroimaging.augmentations import AffineMRIAugmenter
 
@@ -10,8 +10,17 @@ from tensorflow_neuroimaging.augmentations import AffineMRIAugmenter
 class TestMRIAugmenter(AffineMRIAugmenter):
     __test__ = False
 
-    def compute_transform(self, *args, **kwargs) -> Tuple[tf.Tensor]:
-        raise NotImplementedError()
+    @property
+    def _transformation_params(self) -> Dict[str, Any]:
+        return {}
+
+    @staticmethod
+    def _validate_params(*args, **kwargs):
+        return
+
+    @staticmethod
+    def _compute_transform(self, image: tf.Tensor, **kwargs) -> Tuple:
+        return tf.eye(3), tf.zeros(3)
 
 def test_affine_mri_augmenter_invalid_interpolation():
     """Test that the affine MRI augmenter raises an error if an

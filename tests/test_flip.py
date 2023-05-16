@@ -13,7 +13,7 @@ def test_mri_augmenter_flip_none():
     """
     image = tf.random.uniform((10, 10, 10))
     flips = tf.repeat(False, 3)
-    matrix, offset = Flip.compute_transform(image, flips=flips)
+    matrix, offset = Flip._compute_transform(image, flips=flips)
 
     assert np.array_equal(matrix, np.eye(3)), \
            ('MRIAugmenter.flip should not flip the image when no axes to flip '
@@ -30,42 +30,12 @@ def test_mri_augmenter_flip_2d():
     flips = tf.repeat(False, 3)
 
     try:
-        Flip.compute_transform(image, flips=flips)
+        Flip._compute_transform(image, flips=flips)
 
         assert False, \
                ('MRIAugmenter.flip should raise an error when the image is '
                 'not 3-dimensional')
     except InvalidArgumentError:
-        pass
-
-def test_mri_augmenter_flip_2d_vector():
-    """Tests that the MRIAugmenter.flip method raises an error if the
-    flips argument is not 3-dimensional.
-    """
-    image = tf.random.uniform((10, 10, 10), dtype=tf.float32)
-    flips = tf.repeat(False, 2)
-    try:
-        Flip.compute_transform(image, flips=flips)
-
-        assert False, \
-               ('MRIAugmenter.flip should raise an error when the flips '
-                'argument is not 3-dimensional')
-    except ValueError:
-        pass
-
-def test_mri_augmenter_flip_integer_flips():
-    """Tests that the MRIAugmenter.flip method raises an error if the
-    flips argument is not boolean.
-    """
-    image = tf.random.uniform((10, 10, 10), dtype=tf.float32)
-    flips = tf.constant([0, 0, 0])
-    try:
-        Flip.compute_transform(image, flips=flips)
-
-        assert False, \
-                ('MRIAugmenter.flip should raise an error when the flips '
-                 'argument is not boolean')
-    except TypeError:
         pass
 
 def test_mri_augmenter_flip_y():
@@ -74,7 +44,7 @@ def test_mri_augmenter_flip_y():
     """
     image = tf.random.uniform((10, 11, 12), dtype=tf.float32)
     flips = tf.constant([True, False, False])
-    matrix, offset = Flip.compute_transform(image, flips=flips)
+    matrix, offset = Flip._compute_transform(image, flips=flips)
 
     assert np.array_equal(matrix, np.diag([-1, 1, 1])), \
            ('MRIAugmenter.flip should flip the image across the y-axis when '
@@ -89,7 +59,7 @@ def test_mri_augmenter_flip_x():
     """
     image = tf.random.uniform((10, 11, 12), dtype=tf.float32)
     flips = tf.constant([False, True, False])
-    matrix, offset = Flip.compute_transform(image, flips=flips)
+    matrix, offset = Flip._compute_transform(image, flips=flips)
 
     assert np.array_equal(matrix, np.diag([1, -1, 1])), \
            ('MRIAugmenter.flip should flip the image across the x-axis when '
@@ -104,7 +74,7 @@ def test_mri_augmenter_flip_z():
     """
     image = tf.random.uniform((10, 11, 12), dtype=tf.float32)
     flips = tf.constant([False, False, True])
-    matrix, offset = Flip.compute_transform(image, flips=flips)
+    matrix, offset = Flip._compute_transform(image, flips=flips)
 
     assert np.array_equal(matrix, np.diag([1, 1, -1])), \
            ('MRIAugmenter.flip should flip the image across the z-axis when '
@@ -112,3 +82,31 @@ def test_mri_augmenter_flip_z():
     assert np.array_equal(offset, np.array([0, 0, 12])), \
            ('MRIAugmenter.flip should add an offset equal to the image depth '
             'when flipping across the z-axis')
+
+def test_mri_augmenter_flip_2d_vector():
+    """Tests that the MRIAugmenter constructor raises an error if the
+    flips argument is not 3-dimensional.
+    """
+    flips = tf.repeat(False, 2)
+    try:
+        Flip(flips)
+
+        assert False, \
+               ('MRIAugmenter.flip should raise an error when the flips '
+                'argument is not 3-dimensional')
+    except ValueError:
+        pass
+
+def test_mri_augmenter_flip_integer_flips():
+    """Tests that the MRIAugmenter.flip method raises an error if the
+    flips argument is not boolean.
+    """
+    flips = tf.constant([0, 0, 0])
+    try:
+        Flip(flips)
+
+        assert False, \
+                ('MRIAugmenter.flip should raise an error when the flips '
+                 'argument is not boolean')
+    except TypeError:
+        pass

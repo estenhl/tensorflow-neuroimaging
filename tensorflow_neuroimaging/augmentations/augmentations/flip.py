@@ -1,12 +1,16 @@
 import tensorflow as tf
 
-from typing import Tuple
+from typing import Any, Dict, Tuple
 
 from .affine_mri_augmenter import AffineMRIAugmenter
 
 
 class Flip(AffineMRIAugmenter):
     """MRI augmenter flipping the image along the given axes."""
+
+    @property
+    def _transformation_params(self) -> Dict[str, Any]:
+        return {'flips': self.flips}
 
     @staticmethod
     def _validate_params(*, flips: tf.Tensor):
@@ -36,3 +40,5 @@ class Flip(AffineMRIAugmenter):
 
     def __init__(self, flips: tf.Tensor):
         self.flips = flips
+
+        super().__init__()

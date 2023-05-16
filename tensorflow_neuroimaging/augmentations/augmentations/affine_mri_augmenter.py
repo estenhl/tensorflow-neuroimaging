@@ -2,7 +2,7 @@
 import tensorflow as tf
 
 from abc import ABC, abstractmethod
-from typing import Tuple
+from typing import Any, Dict, Tuple
 
 from .mri_augmenter import MRIAugmenter
 
@@ -10,6 +10,20 @@ class AffineMRIAugmenter(MRIAugmenter, ABC):
     """Abstract base class for MRI augmenters applying affine
     transformations.
     """
+
+    @property
+    @abstractmethod
+    def _transformation_params(self) -> Dict[str, Any]:
+        """A dictionary of parameters used to compute the specific
+        affine transformation in each subclass.
+
+        Returns
+        -------
+        params : Dict[str, Any]
+            A dictionary of parameters used to compute the affine
+            transformation.
+        """
+
 
     @staticmethod
     @abstractmethod
@@ -28,10 +42,25 @@ class AffineMRIAugmenter(MRIAugmenter, ABC):
             If the parameters are invalid.
         """
 
+    @staticmethod
     @abstractmethod
     def _compute_transform(self, image: tf.Tensor, **kwargs) -> Tuple[tf.Tensor]:
-        """Internal method to compute the affine transformation
-        parameters which are overwritten by subclasses.
+        """Internal static method to compute the affine transformation
+        parameters based on arguments passed to the method.
+
+        Parameters
+        ----------
+        image : tf.Tensor
+            A 3-dimensional tensor representing a structural MRI.
+        **kwargs
+            Any parameters necessary to compute the transform.
+
+        Returns
+        -------
+        transform : tf.Tensor
+            A 3x3 transformation matrix.
+        offset : tf.Tensor
+            A 3-dimensional vector representing the offset.
         """
 
     @staticmethod
@@ -82,9 +111,39 @@ class AffineMRIAugmenter(MRIAugmenter, ABC):
                                  ('AffineMRIAugmenter only supports float32 '
                                   'vectors as offsets'))
 
-    @classmethod
-    def compute_transform(cls, image: tf.Tensor, **kwargs) -> Tuple[tf.Tensor]:
-        """Compute the affine transformation parameters.
+    def __init__(self, interpolation: str = 'BILINEAR'):
+        """Instantiate the affine augmenter.
+        NOTE: The _transformation_params property should be set
+        prior to calling this constructor, as it validates the
+        parameters given.
+
+        Parameters
+        ----------
+        interpolation : str
+            The interpolation method to use. Can be either 'BILINEAR'
+            or 'NEAREST_NEIGHBOR'.
+
+        Raises
+        ------
+        AssertionError
+            If the interpolation method is not supported.
+        Exception
+            If the _transformation_params property is not set and valid.
+        """
+        assert interpolation in ['BILINEAR', 'NEAREST_NEIGHBOR'], \
+                ('AffineMRIAugmenter only supports BILINEAR and '
+                'NEAREST_NEIGHBOR interpolation')
+
+        self.interpolation = interpolation
+
+        self._validate_params(**self._transformation_params)
+
+        super().__init__()
+
+    def compute_transform(self, image: tf.Tensor) -> Tuple[tf.Tensor]:
+        """Public interface for computing the affine transformation
+        parameters. The transform will rely on parameters which should
+        be set in the object.
 
         Parameters
         ----------
@@ -98,25 +157,10 @@ class AffineMRIAugmenter(MRIAugmenter, ABC):
         offset : tf.Tensor
             A 3-dimensional vector representing the offset.
         """
-        cls.validate_image(image)
-        cls._validate_params(**kwargs)
+        self._validate_image(image)
 
-        return cls._compute_transform(image, **kwargs)
-
-    def __init__(self, interpolation: str = 'BILINEAR'):
-        """Initialize the affine augmenter.
-
-        Parameters
-        ----------
-        interpolation : str
-            The interpolation method to use. Can be either 'BILINEAR'
-            or 'NEAREST_NEIGHBOR'.
-        """
-        assert interpolation in ['BILINEAR', 'NEAREST_NEIGHBOR'], \
-                ('AffineMRIAugmenter only supports BILINEAR and '
-                'NEAREST_NEIGHBOR interpolation')
-
-        self.interpolation = interpolation
+        return self._compute_transform(image,
+                                       **self._transformation_parameters)
 
     def apply_transformation(self, image: tf.Tensor, matrix: tf.Tensor,
                              offset: tf.Tensor,
