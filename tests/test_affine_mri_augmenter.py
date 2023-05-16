@@ -1,6 +1,8 @@
-from typing import Tuple
+"""Tests for the AffineMRIAugmenter class."""
 import numpy as np
 import tensorflow as tf
+
+from typing import Tuple
 
 from tensorflow_neuroimaging.augmentations import AffineMRIAugmenter
 
@@ -8,7 +10,7 @@ from tensorflow_neuroimaging.augmentations import AffineMRIAugmenter
 class TestMRIAugmenter(AffineMRIAugmenter):
     __test__ = False
 
-    def compute_transform(self, *args, **kwargs) -> Tuple:
+    def compute_transform(self, *args, **kwargs) -> Tuple[tf.Tensor]:
         raise NotImplementedError()
 
 def test_affine_mri_augmenter_invalid_interpolation():

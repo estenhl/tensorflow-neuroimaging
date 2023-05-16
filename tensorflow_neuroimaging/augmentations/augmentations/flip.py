@@ -9,7 +9,7 @@ class Flip(AffineMRIAugmenter):
     """MRI augmenter flipping the image along the given axes."""
 
     @staticmethod
-    def _validate_params(flips: tf.Tensor):
+    def _validate_params(*, flips: tf.Tensor):
         tf.debugging.assert_shapes([(flips, (3,))],
                                    ('Flip should receive a 3-dimensional '
                                     'flips-vector'))

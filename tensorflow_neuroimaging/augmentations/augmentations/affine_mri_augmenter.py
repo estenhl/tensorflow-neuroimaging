@@ -1,3 +1,4 @@
+"""MRI augmenter applying affine transformations."""
 import tensorflow as tf
 
 from abc import ABC, abstractmethod
@@ -157,7 +158,7 @@ class AffineMRIAugmenter(MRIAugmenter, ABC):
             frozen = tf.cast(frozen, tf.int32)
             dims = tf.range(2)
             dims = tf.where(dims >= frozen, dims + 1, dims)
-            dims = tf.concat([dims, tf.expand_dims(frozen, 0)], axis=0)
+            dims = tf.concat(values=[dims, tf.expand_dims(frozen, 0)], axis=0)
 
         # Reorder the dimensions of the image such that the two
         # dimensions which should be modified are first
