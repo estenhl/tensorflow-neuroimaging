@@ -65,21 +65,6 @@ def _parse_header(tfbytes: tf.Tensor) -> Dict[str, tf.Tensor]:
     }
 
 def load_mgh(path: tf.Tensor) -> tf.Tensor:
-    import nibabel as nib
-    img = nib.load(path.numpy().decode('utf-8'))
-    print([f'{x}: {img.header[x]}' for x in img.header.keys()])
-    fig, ax = plt.subplots(1, 3, figsize=(10, 5))
-    img = img.get_fdata()
-    print(img.shape)
-
-    ax[0].imshow(img[112, :, :], cmap='Greys_r')
-    ax[0].axis('off')
-    ax[1].imshow(img[:, 112, :], cmap='Greys_r')
-    ax[1].axis('off')
-    ax[2].imshow(img[:, :, 112], cmap='Greys_r')
-    ax[2].axis('off')
-
-    plt.show()
     mghdata = tf.io.read_file(path)
     mghdata = tf.cond(tf.strings.regex_full_match(path, '.*\.mgz$'),
                       lambda: tf.io.decode_compressed(mghdata, 'GZIP'),

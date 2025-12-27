@@ -1,0 +1,41 @@
+[project]
+name = "tensorflow-neuroimaging"
+version = "1.0.0"
+description = "Repository containing the various utilities for working with neuroimaging data in TensorFlow."
+authors = [
+    {name = "Esten Leonardsen",email = "estenleonardsen@gmail.com"}
+]
+license = "CC-BY-NC"
+license-files = [
+    "LICENSE.md"
+]
+readme = "README.md"
+requires-python = ">=3.10,<3.11"
+dependencies = [
+    "tensorflow-macos>=2.11,<2.12; platform_system == 'Darwin'",
+    "tensorflow-metal>=0.7,<0.8; platform_system == 'Darwin'",
+    "tensorflow>=2.11,<2.12; platform_system != 'Darwin'",
+    "numpy==1.23.5",
+    "matplotlib (>=3.10.8,<4.0.0)",
+    "tqdm (>=4.67.1,<5.0.0)"
+]
+
+[tool.poetry]
+packages = [{include = "tensorflow_neuroimaging"}]
+include = [
+    {path = "pyproject.toml", format = "sdist"}
+]
+
+[tool.poetry.scripts]
+verify-mgh-loader = "tensorflow_neuroimaging.cli.verify_mgh_loader:main"
+
+[tool.poetry.dependencies]
+python = ">=3.10,<3.11"
+tensorflow-macos = { version = "2.11", markers = "platform_system == 'Darwin'" }
+tensorflow-metal = { version = "0.7", markers = "platform_system == 'Darwin'" }
+tensorflow = { version = "2.11", markers = "platform_system != 'Darwin'" }
+numpy = "1.23.5"
+
+[build-system]
+requires = ["poetry-core>=2.0.0,<3.0.0"]
+build-backend = "poetry.core.masonry.api"
