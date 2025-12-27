@@ -16,7 +16,7 @@ dependencies = [
     "tensorflow-metal>=0.7,<0.8; platform_system == 'Darwin'",
     "tensorflow>=2.11,<2.12; platform_system != 'Darwin'",
     "numpy==1.23.5",
-    "matplotlib (>=3.10.8,<4.0.0)",
+    "matplotlib (>=3.8,<4.0.0)",
     "tqdm (>=4.66.4,<5.0.0)"
 ]
 
@@ -35,6 +35,8 @@ tensorflow-macos = { version = "2.11", markers = "platform_system == 'Darwin'" }
 tensorflow-metal = { version = "0.7", markers = "platform_system == 'Darwin'" }
 tensorflow = { version = "2.11", markers = "platform_system != 'Darwin'" }
 numpy = "1.23.5"
+matplotlib = ">=3.8,<4.0.0"
+tqdm = ">=4.66.4,<5.0.0"
 
 [build-system]
 requires = ["poetry-core>=2.0.0,<3.0.0"]
