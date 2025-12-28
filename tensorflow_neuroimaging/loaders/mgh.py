@@ -27,15 +27,25 @@ def _decode(imagebytes: tf.Tensor, dtype: tf.Tensor):
                                   _MGH_DTYPES[key]['dtype'])) \
         for key in _VALID_MGH_DTYPES
     ]
-    return tf.case(cases,
-                   default=lambda: tf.Assert(False,
-                                             [f'Unknown data type: {dtype}']))
+
+    # tf.io.decode_raw returns a tuple, so we need to extract the first
+    # element
+    return tf.case(
+        cases,
+        default=lambda: tf.Assert(False, [f'Unknown data type: {dtype}'])
+    )
 
 def _parse(buffer: tf.Tensor, start: int, size: int,
            dtype: DType) -> Dict[str, tf.Tensor]:
     bytestring = tf.strings.substr(buffer, start, size)
 
-    return tf.io.decode_raw(bytestring, dtype, little_endian=False)
+    decoded = tf.io.decode_raw(bytestring, dtype, little_endian=False)
+    decoded = tf.cond(
+        tf.equal(tf.rank(decoded), 1),
+        lambda: tf.squeeze(decoded),
+        lambda: decoded
+    )
+    return decoded
 
 def _parse_header(tfbytes: tf.Tensor) -> Dict[str, tf.Tensor]:
     version = _parse(tfbytes, 0, 4, tf.int32)
@@ -44,7 +54,7 @@ def _parse_header(tfbytes: tf.Tensor) -> Dict[str, tf.Tensor]:
     width = _parse(tfbytes, 4, 4, tf.int32)
     height = _parse(tfbytes, 8, 4, tf.int32)
     depth = _parse(tfbytes, 12, 4, tf.int32)
-    shape = tf.concat([width, height, depth], axis=0)
+    shape = tf.stack([width, height, depth], axis=0)
 
     dtype = _parse(tfbytes, 20, 4, tf.int32)
     bytes_per_voxel = _MGH_BYTE_SIZES.lookup(dtype)
@@ -70,7 +80,6 @@ def load_mgh(path: tf.Tensor) -> tf.Tensor:
                       lambda: tf.io.decode_compressed(mghdata, 'GZIP'),
                       lambda: mghdata)
 
-
     header = _parse_header(mghdata)
     imagesize = tf.reduce_prod(header['shape']) * header['bytes_per_voxel']
     imagesize = tf.squeeze(imagesize)
@@ -82,8 +91,6 @@ def load_mgh(path: tf.Tensor) -> tf.Tensor:
                     lambda: image,
                     lambda: tf.cast(image, tf.float32))
     image = tf.transpose(image, [2, 1, 0])
-    #image = tf.reverse(image, axis=[0])
-    #image = tf.reverse(image, axis=[1])
 
     return image
 
